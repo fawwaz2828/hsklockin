@@ -3,6 +3,7 @@ import { LESSONS, VERS } from "../data/lessons.js";
 import { KEYS, getItem, setItem, loadProgress, saveProgress } from "../lib/storage.js";
 import { gsap, useGSAP, prefersReducedMotion } from "../lib/motion.js";
 import { useLang, LangSwitch } from "../lib/i18n.jsx";
+import { ThemeSwitch } from "../lib/theme.jsx";
 import { enLabel } from "../data/en.js";
 import LessonBar from "./LessonBar.jsx";
 import CardView from "./CardView.jsx";
@@ -100,7 +101,7 @@ export default function Study({ view, setView }) {
       <header className="topbar">
         <a href="#/" className="mini-mark">HSKLOCKIN</a>
         <div className="topbar-right">
-          <LangSwitch />
+          <div className="toggles"><LangSwitch /><ThemeSwitch /></div>
           <a href="#/" className="back-link">{t.home}</a>
         </div>
       </header>

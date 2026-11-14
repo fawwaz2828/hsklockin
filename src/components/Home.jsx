@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { gsap, SplitText, useGSAP, prefersReducedMotion } from "../lib/motion.js";
 import { LESSONS, ALL } from "../data/lessons.js";
 import { useLang, LangSwitch } from "../lib/i18n.jsx";
+import { ThemeSwitch } from "../lib/theme.jsx";
 import RollButton from "./RollButton.jsx";
 
 const WORD = "HSKLOCKIN".split("");
@@ -53,7 +54,7 @@ export default function Home() {
 
       <div className="subrow">
         <span>{t.tagline}</span>
-        <LangSwitch />
+        <div className="toggles"><LangSwitch /><ThemeSwitch /></div>
         <span className="it">加油, jiāyóu!</span>
       </div>
 
