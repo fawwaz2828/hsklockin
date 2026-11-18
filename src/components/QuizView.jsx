@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLang, meaning } from "../lib/i18n.jsx";
+import { SpeakButton, speak } from "../lib/speech.jsx";
 
 const TYPES = ["hz2id", "id2hz", "py2hz"];
 
@@ -56,6 +57,7 @@ export default function QuizView({ words, updateProg }) {
     setPicked(o.k);
     const ok = o.k === q.word.k;
     setScore(s => ({ right: s.right + (ok ? 1 : 0), total: s.total + 1 }));
+    speak(q.word.h); // setelah menjawab, dengarkan pengucapan jawaban yang benar
     if (!ok) updateProg(p => { p[q.word.k] = "u"; return p; });
   };
 
@@ -81,6 +83,10 @@ export default function QuizView({ words, updateProg }) {
         <div className={"q" + (type === "hz2id" ? "" : " small") + (type === "py2hz" ? " pinyin" : "")}>
           {type === "hz2id" ? w.h : type === "id2hz" ? m(w) : w.p}
         </div>
+        {/* soal Arti → Hanzi: suara baru boleh diputar setelah menjawab, supaya tidak membocorkan jawaban */}
+        {(type !== "id2hz" || picked) && (
+          <div className="quiz-say"><SpeakButton text={w.h} label={t.listen} /></div>
+        )}
         <div className="opts">
           {q.opts.map(o => {
             let cls = "opt" + (type === "hz2id" ? "" : " hz2");

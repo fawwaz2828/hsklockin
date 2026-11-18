@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { lnum, llevel } from "../data/lessons.js";
-import { shuffle } from "../lib/storage.js";
+import { shuffle, getItem, setItem } from "../lib/storage.js";
 import { gsap, prefersReducedMotion } from "../lib/motion.js";
 import { useLang, meaning } from "../lib/i18n.jsx";
+import { speak, stopSpeaking, useHasVoice, SpeakButton } from "../lib/speech.jsx";
 
 // true kalau elemen terlihat di layar (shortcut keyboard hanya aktif saat kartu kelihatan)
 const onScreen = el => {
@@ -46,7 +47,7 @@ function Meaning({ w }) {
 }
 
 function Notes({ w }) {
-  const { lang } = useLang();
+  const { t, lang } = useLang();
   const en = lang === "en";
   const note = en ? w.noteEn || w.note : w.note;
   return (
@@ -54,7 +55,9 @@ function Notes({ w }) {
       {note && <div className="note">{note}</div>}
       {w.ex && (
         <div className="ex">
-          <div className="z">{w.ex.zh}</div>
+          <div className="z">
+            {w.ex.zh} <SpeakButton text={w.ex.zh} rate={0.8} label={t.listenEx} className="inline" />
+          </div>
           <div className="y">{w.ex.py}</div>
           <div className="t">{en ? w.ex.en || w.ex.id : w.ex.id}</div>
         </div>
@@ -71,6 +74,7 @@ function Faces({ w, mode, multi, status }) {
       <span className="pos">{w.t}</span>
     </>
   );
+  const say = <SpeakButton text={w.h} label={t.listen} className="corner" />;
   const hz = <div className="hz">{w.h}</div>;
   const py = <div className="py">{w.p}</div>;
   let front, back;
@@ -102,8 +106,8 @@ function Faces({ w, mode, multi, status }) {
   }
   return (
     <>
-      <div className="face front">{top}{front}<StatusTag s={status} /></div>
-      <div className="face back">{top}{back}<StatusTag s={status} /></div>
+      <div className="face front">{top}{front}{mode !== "id" && say}<StatusTag s={status} /></div>
+      <div className="face back">{top}{back}{say}<StatusTag s={status} /></div>
     </>
   );
 }
@@ -118,6 +122,9 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
   const [idx, setIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const hasVoice = useHasVoice();
+  const [autoSay, setAutoSay] = useState(() => getItem("hsk-autosay") === "1");
+  useEffect(() => { setItem("hsk-autosay", autoSay ? "1" : "0"); }, [autoSay]);
 
   const deck = useMemo(() => order.filter(k => !onlyU || prog[k] !== "k"), [order, onlyU, prog]);
   const i = deck.length ? Math.min(idx, deck.length - 1) : 0;
@@ -132,6 +139,13 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
     return () => clearTimeout(t);
   }, [curKey, mode]);
   const w = byK.get(shownKey) || byK.get(curKey);
+
+  // Auto suara: baca kata saat kartu baru tampil (atau saat dibalik, kalau depan = arti)
+  useEffect(() => {
+    if (!autoSay || !w) return;
+    if (mode !== "id" ? !flipped : flipped) speak(w.h);
+  }, [autoSay, shownKey, mode, flipped]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => stopSpeaking, []); // berhenti bicara saat pindah halaman
 
   // Kartu baru masuk dengan blur + naik sedikit
   const sceneRef = useRef(null);
@@ -160,7 +174,7 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
 
   // Keyboard: handler selalu memakai state terbaru lewat ref
   const handlers = useRef();
-  handlers.current = { flip: () => setFlipped(f => !f), go, mark };
+  handlers.current = { flip: () => setFlipped(f => !f), go, mark, say: () => w && speak(w.h) };
   useEffect(() => {
     const onKey = e => {
       if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT") return;
@@ -172,6 +186,7 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
       else if (e.ctrlKey || e.metaKey || e.altKey) return;
       else if (e.key.toLowerCase() === "n") h.mark("u");
       else if (e.key.toLowerCase() === "m") h.mark("k");
+      else if (e.key.toLowerCase() === "l") h.say();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -221,6 +236,10 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
         <button className={"chip" + (onlyU ? " on" : "")} onClick={() => { setOnlyU(v => !v); setIdx(0); }}>
           {t.onlyU}
         </button>
+        <button className={"chip" + (autoSay ? " on" : "")} disabled={!hasVoice} title={hasVoice ? "" : t.noVoice}
+          onClick={() => setAutoSay(v => !v)}>
+          {t.autoSay}
+        </button>
         <button className={"chip" + (confirmReset ? " on" : "")} onClick={onReset}>
           {confirmReset ? (multi ? t.resetAll : t.resetLesson) : t.reset}
         </button>
@@ -255,7 +274,8 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
             </div>
             <div className="keys">
               <kbd>↑</kbd> <kbd>↓</kbd> {t.keys[0]} · <kbd>←</kbd> <kbd>→</kbd> {t.keys[1]} · <kbd>N</kbd> {t.keys[2]} ·{" "}
-              <kbd>M</kbd> {t.keys[3]}
+              <kbd>M</kbd> {t.keys[3]} · <kbd>L</kbd> {t.keys[4]}
+              {!hasVoice && <div className="hint" style={{ marginTop: 6, fontSize: 11 }}>{t.noVoice}</div>}
               <div className="hint" style={{ marginTop: 6, fontSize: 11 }}>{t.keysNote}</div>
             </div>
           </div>

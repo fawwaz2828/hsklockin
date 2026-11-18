@@ -16,10 +16,11 @@ npm run build    # hasil statis di dist/
 - **Kuis** — pilihan ganda: hanzi → arti, arti → hanzi, pinyin → hanzi. Jawaban salah otomatis ditandai "belum hafal".
 - **Daftar kata** — semua kata per lesson beserta catatan dan contoh kalimat.
 - **Gabung lesson** — centang "Gabung lesson" untuk menggabungkan beberapa lesson, bisa lintas HSK 1–4 (dalam satu versi), untuk flashcard, kuis, dan daftar kata.
+- **Audio** — pengucapan kata & contoh kalimat lewat text-to-speech browser (suara Mandarin zh-CN), opsi "Suara otomatis" di flashcard.
 - **ID / EN** — antarmuka, arti, contoh kalimat, dan catatan tersedia dalam dua bahasa.
 - Progres disimpan di `localStorage` browser.
 
-Shortcut di flashcard: `↑` `↓` balik kartu · `←` `→` pindah · `N` belum hafal · `M` sudah hafal.
+Shortcut di flashcard: `↑` `↓` balik kartu · `←` `→` pindah · `N` belum hafal · `M` sudah hafal · `L` dengar pengucapan.
 
 ## Struktur
 

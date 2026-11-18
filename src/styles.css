@@ -300,3 +300,14 @@ kbd { font-family: var(--f-mono); border: 1px solid var(--line); border-bottom-w
 .combine-hint { color: var(--muted); font-size: 12px; margin: -4px 0 10px; }
 .seg button .badge { display: inline-block; min-width: 16px; margin-left: 5px; padding: 0 4px; font-family: var(--f-mono); font-size: 10px; line-height: 16px; background: var(--ink); color: var(--paper); border-radius: 8px; vertical-align: 1px; }
 .seg button.on .badge { background: var(--on-red); color: var(--red); }
+
+/* tombol suara */
+.speak { display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid var(--line); background: var(--paper); color: var(--ink); cursor: pointer; border-radius: 50%; transition: background 0.2s, border-color 0.2s, color 0.2s; vertical-align: middle; }
+.speak:hover:not(:disabled) { border-color: var(--red); color: var(--red); }
+.speak:active:not(:disabled) { transform: scale(0.94); }
+.speak:disabled { opacity: 0.3; cursor: not-allowed; }
+.speak.corner { position: absolute; bottom: 12px; left: 14px; z-index: 2; }
+.speak.inline { width: 26px; height: 26px; margin-left: 4px; vertical-align: -4px; }
+.speak.inline svg { width: 13px; height: 13px; }
+.row .h .speak.inline { vertical-align: 4px; }
+.quiz-say { margin-top: 10px; }

@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { useLang, meaning } from "../lib/i18n.jsx";
 import { enLabel } from "../data/en.js";
+import { SpeakButton } from "../lib/speech.jsx";
 
 export default function ListView({ lessons, multi, prog }) {
   const { t, lang } = useLang();
@@ -28,7 +29,7 @@ export default function ListView({ lessons, multi, prog }) {
                     <div key={w.k} className={"row " + (prog[w.k] || "")}>
                       <span className="n">{w.n}</span>
                       <div>
-                        <div className="h">{w.h}</div>
+                        <div className="h">{w.h} <SpeakButton text={w.h} label={t.listen} className="inline" /></div>
                         <div className="p">{w.p}</div>
                       </div>
                       <div className="m">
@@ -40,7 +41,7 @@ export default function ListView({ lessons, multi, prog }) {
                         </small>
                         {w.ex && (
                           <span className="exl">
-                            {w.ex.zh}{" "}
+                            {w.ex.zh} <SpeakButton text={w.ex.zh} rate={0.8} label={t.listenEx} className="inline" />{" "}
                             <span style={{ color: "var(--muted)" }}>— {lang === "en" ? w.ex.en || w.ex.id : w.ex.id}</span>
                           </span>
                         )}
