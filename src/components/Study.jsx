@@ -18,10 +18,21 @@ function initialSet() {
   return s && LESSONS.some(L => L.set === s) ? s : "4-3";
 }
 
-function initialLesson(set) {
-  const n = parseInt(getItem(KEYS.lesson));
-  const l = isNaN(n) ? 3 : n;
-  return l === 0 || lessonsIn(set).some(L => L.id === l) ? l : lessonsIn(set)[0].id;
+const levelOf = L => +L.set.split("-")[0];
+const verOf = set => set.split("-")[1];
+/** Semua lesson satu versi, urut HSK 1 → 4. */
+const lessonsOfVer = ver =>
+  LESSONS.filter(L => verOf(L.set) === ver).sort((a, b) => levelOf(a) - levelOf(b) || a.id - b.id);
+
+/** Lesson terpilih (array id, boleh lintas HSK dalam satu versi). Format lama: "0" = semua lesson. */
+function initialSel(set) {
+  const ids = lessonsIn(set).map(L => L.id);
+  // lintas HSK hanya kalau mode "Gabung" aktif
+  const verIds = getItem(KEYS.combine) === "1" ? lessonsOfVer(verOf(set)).map(L => L.id) : ids;
+  const raw = getItem(KEYS.lesson) || "";
+  if (raw === "0") return ids;
+  const picked = raw.split(",").map(Number).filter(id => verIds.includes(id));
+  return picked.length ? picked : [ids.includes(3) ? 3 : ids[0]];
 }
 
 const VIEWS = ["cards", "quiz", "list"];
@@ -61,7 +72,8 @@ export default function Study({ view, setView }) {
   const { t, lang } = useLang();
   const label = s => (lang === "en" ? enLabel(s) : s);
   const [curSet, setCurSet] = useState(initialSet);
-  const [lesson, setLesson] = useState(() => initialLesson(curSet));
+  const [sel, setSel] = useState(() => initialSel(curSet));
+  const [combine, setCombine] = useState(() => getItem(KEYS.combine) === "1");
   const [prog, setProg] = useState(loadProgress);
   const [hzFont, setHzFont] = useState(() => (getItem("hsk-hz-font") === "system" ? "system" : "serif"));
 
@@ -72,29 +84,67 @@ export default function Study({ view, setView }) {
     });
   }, { scope: root });
 
+  const [lv, ver] = curSet.split("-");
   const setLessons = useMemo(() => lessonsIn(curSet), [curSet]);
-  const current = lesson === 0 ? null : LESSONS.find(L => L.id === lesson);
-  const words = useMemo(
-    () => (current ? current.words : setLessons.flatMap(L => L.words)),
-    [current, setLessons]
-  );
+  // pilihan bisa lintas HSK (versi sama); urut HSK 1 → 4 lalu nomor lesson, bukan urutan klik
+  const picked = useMemo(() => lessonsOfVer(ver).filter(L => sel.includes(L.id)), [ver, sel]);
+  const words = useMemo(() => picked.flatMap(L => L.words), [picked]);
+  const pickedLevels = [...new Set(picked.map(levelOf))];
+  const crossLevel = pickedLevels.length > 1;
+  // "Semua" = semua lesson HSK yang sedang dibuka sudah dipilih
+  const allCur = setLessons.every(L => sel.includes(L.id));
+  const all = allCur && picked.length === setLessons.length;
+  const single = picked.length === 1 ? picked[0] : null;
 
   useEffect(() => { setItem(KEYS.set, curSet); }, [curSet]);
-  useEffect(() => { setItem(KEYS.lesson, String(lesson)); }, [lesson]);
+  useEffect(() => { setItem(KEYS.lesson, all && setLessons.length > 1 ? "0" : sel.join(",")); }, [sel, all, setLessons]);
+  useEffect(() => { setItem(KEYS.combine, combine ? "1" : "0"); }, [combine]);
   useEffect(() => { saveProgress(prog); }, [prog]);
   useEffect(() => { setItem("hsk-hz-font", hzFont); }, [hzFont]);
 
   // fn menerima salinan progres, mengubahnya, lalu mengembalikannya
   const updateProg = useCallback(fn => setProg(p => fn({ ...p })), []);
 
+  // Ganti versi => pilihan diganti ke lesson pertama.
+  // Ganti HSK => tanpa "Gabung" pilihan langsung diganti; dengan "Gabung" pilihan dari HSK lain tetap disimpan.
   const chooseSet = set => {
     if (set === curSet) return;
     setCurSet(set);
-    setLesson(lessonsIn(set)[0].id);
+    if (!combine || verOf(set) !== ver) setSel([lessonsIn(set)[0].id]);
   };
 
-  const [lv, ver] = curSet.split("-");
-  const deckKey = curSet + ":" + lesson; // ganti lesson => state kartu & kuis di-reset
+  const pickLesson = id => {
+    if (!combine) return setSel([id]);
+    setSel(s => (s.includes(id) ? (s.length > 1 ? s.filter(x => x !== id) : s) : [...s, id]));
+  };
+  const pickAll = () => {
+    const ids = setLessons.map(L => L.id);
+    if (!combine) return setSel(ids);
+    // mode gabung: "Semua" menambah / melepas seluruh lesson HSK ini, pilihan HSK lain tidak disentuh
+    setSel(s => {
+      if (!allCur) return [...new Set([...s, ...ids])];
+      const rest = s.filter(id => !ids.includes(id));
+      return rest.length ? rest : [ids[0]];
+    });
+  };
+  const toggleCombine = () => {
+    // matikan gabung: sisakan lesson dari HSK yang sedang dibuka (satu saja, kecuali "Semua")
+    if (combine) {
+      const cur = picked.filter(L => L.set === curSet);
+      if (allCur) setSel(setLessons.map(L => L.id));
+      else setSel([(cur[0] || setLessons[0]).id]);
+    }
+    setCombine(c => !c);
+  };
+
+  const deckKey = ver + ":" + picked.map(L => L.id).join(","); // ganti pilihan => kartu & kuis di-reset
+  const multi = crossLevel ? "level" : picked.length > 1;
+  const short = L => (L.name === "Angka" ? t.numbers : L.short || L.name.replace("Lesson ", "L"));
+  const titleLv = pickedLevels.length ? pickedLevels.join(" + ") : lv;
+  const title = crossLevel ? t.lessonCount(picked.length)
+    : all && picked.length > 1 ? t.allLessons
+    : single ? lessonName(single, t)
+    : picked.length <= 4 ? picked.map(short).join(" + ") : t.lessonCount(picked.length);
 
   return (
     <section className={"study hz-" + hzFont} ref={root}>
@@ -109,10 +159,10 @@ export default function Study({ view, setView }) {
         <div className="study-head">
           <div>
             <h2 className="study-title">
-              HSK {lv} <em>{VERS[ver]}</em> · {current ? lessonName(current, t) : t.allLessons}
+              HSK {titleLv} <em>{VERS[ver]}</em> · {title}
             </h2>
             <div className="study-sub">
-              {current ? t.wordsSub(words.length, label(current.sub)) : t.wordsAll(words.length, setLessons.length)}
+              {single ? t.wordsSub(words.length, label(single.sub)) : t.wordsAll(words.length, picked.length)}
             </div>
           </div>
           <Tabs view={view} setView={setView} />
@@ -120,19 +170,21 @@ export default function Study({ view, setView }) {
 
         <div className="study-layout">
           <aside>
-            <LessonBar curSet={curSet} lessons={setLessons} lesson={lesson} onSet={chooseSet} onLesson={setLesson} />
+            <LessonBar
+              curSet={curSet} lessons={setLessons} sel={sel} all={all} allCur={allCur} combine={combine}
+              picked={picked}
+              onSet={chooseSet} onLesson={pickLesson} onAll={pickAll} onCombine={toggleCombine}
+            />
           </aside>
           <div>
             {view === "cards" && (
               <CardView
-                key={deckKey} words={words} multi={lesson === 0} prog={prog} updateProg={updateProg}
+                key={deckKey} words={words} multi={multi} prog={prog} updateProg={updateProg}
                 hzFont={hzFont} setHzFont={setHzFont}
               />
             )}
             {view === "quiz" && <QuizView key={deckKey} words={words} updateProg={updateProg} />}
-            {view === "list" && (
-              <ListView lessons={current ? [current] : setLessons} multi={lesson === 0} prog={prog} />
-            )}
+            {view === "list" && <ListView lessons={picked} multi={multi} prog={prog} />}
           </div>
         </div>
       </div>

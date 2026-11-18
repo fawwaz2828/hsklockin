@@ -14,6 +14,7 @@ export default function ListView({ lessons, multi, prog }) {
           <Fragment key={L.id}>
             {multi && (
               <div className="group lesson">
+                {multi === "level" && L.set.startsWith("4-") ? "HSK 4 · " : ""}
                 {L.name === "Angka" ? t.numbers : L.name} · {label(L.sub)}
               </div>
             )}

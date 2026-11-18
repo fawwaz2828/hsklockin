@@ -32,6 +32,8 @@ const DICT = {
     correct: (r, t) => `Benar ${r} / ${t}`,
     nextQ: "Soal berikutnya →",
     noWords: "Tidak ada kata untuk kuis.",
+    combine: "Gabung lesson", combineHint: n => `${n} lesson dipilih · bisa dari HSK 1–4, klik untuk tambah/hapus`,
+    lessonCount: n => `${n} lesson`,
   },
   en: {
     tagline: "HSK 1–4 vocabulary flashcards",
@@ -63,6 +65,8 @@ const DICT = {
     correct: (r, t) => `Correct ${r} / ${t}`,
     nextQ: "Next question →",
     noWords: "No words available for the quiz.",
+    combine: "Combine lessons", combineHint: n => `${n} lesson${n === 1 ? "" : "s"} selected · across HSK 1–4, click to add/remove`,
+    lessonCount: n => `${n} lessons`,
   },
 };
 

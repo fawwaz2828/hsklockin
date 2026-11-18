@@ -3,6 +3,7 @@ export const KEYS = {
   progress: "hsk4-flash-progress",
   set: "hsk4-flash-set",
   lesson: "hsk4-flash-lesson",
+  combine: "hsk4-flash-combine",
 };
 
 export function getItem(key) {

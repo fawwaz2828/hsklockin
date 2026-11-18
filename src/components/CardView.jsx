@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { lnum } from "../data/lessons.js";
+import { lnum, llevel } from "../data/lessons.js";
 import { shuffle } from "../lib/storage.js";
 import { gsap, prefersReducedMotion } from "../lib/motion.js";
 import { useLang, meaning } from "../lib/i18n.jsx";
@@ -67,7 +67,7 @@ function Faces({ w, mode, multi, status }) {
   const { t } = useLang();
   const top = (
     <>
-      <span className="num">{multi ? `L${lnum(w.l)} · ` : ""}#{w.n}</span>
+      <span className="num">{multi === "level" ? `HSK${llevel(w.l)} L${lnum(w.l)} · ` : multi ? `L${lnum(w.l)} · ` : ""}#{w.n}</span>
       <span className="pos">{w.t}</span>
     </>
   );
@@ -169,8 +169,9 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
       if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); h.flip(); }
       else if (e.key === "ArrowRight") h.go(1);
       else if (e.key === "ArrowLeft") h.go(-1);
-      else if (e.key === "1") h.mark("u");
-      else if (e.key === "2") h.mark("k");
+      else if (e.ctrlKey || e.metaKey || e.altKey) return;
+      else if (e.key.toLowerCase() === "n") h.mark("u");
+      else if (e.key.toLowerCase() === "m") h.mark("k");
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -253,8 +254,8 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
               <button className="btn" onClick={() => go(1)}>{t.next}</button>
             </div>
             <div className="keys">
-              <kbd>↑</kbd> <kbd>↓</kbd> {t.keys[0]} · <kbd>←</kbd> <kbd>→</kbd> {t.keys[1]} · <kbd>1</kbd> {t.keys[2]} ·{" "}
-              <kbd>2</kbd> {t.keys[3]}
+              <kbd>↑</kbd> <kbd>↓</kbd> {t.keys[0]} · <kbd>←</kbd> <kbd>→</kbd> {t.keys[1]} · <kbd>N</kbd> {t.keys[2]} ·{" "}
+              <kbd>M</kbd> {t.keys[3]}
               <div className="hint" style={{ marginTop: 6, fontSize: 11 }}>{t.keysNote}</div>
             </div>
           </div>

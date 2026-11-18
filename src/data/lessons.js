@@ -220,3 +220,6 @@ const ALL = LESSONS.flatMap(L => L.words);
 export const VERS = {"3":"3.0","2":"2.0"};
 export { LESSONS, ALL };
 export const lnum = id => id >= 1000 ? (id % 100 || "N") : id > 100 ? id - 100 : id;
+// level HSK sebuah lesson (dipakai untuk label saat lesson digabung lintas HSK)
+const LEVEL_OF = Object.fromEntries(LESSONS.map(L => [L.id, L.set.split("-")[0]]));
+export const llevel = id => LEVEL_OF[id];

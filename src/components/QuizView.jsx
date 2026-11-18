@@ -24,7 +24,11 @@ function makeQuestion(words, queue = [], lastKey = null) {
     if (rest.length > 1 && rest[0].k === lastKey) rest = [...rest.slice(1), rest[0]];
   }
   const [word, ...remaining] = rest;
-  const others = shuffle(words.filter(w => w.k !== word.k)).slice(0, 3);
+  // pengecoh: hanzi & arti harus beda dari jawaban dan satu sama lain
+  const seen = new Set([word.h, word.id]);
+  const others = shuffle(words.filter(w => w.k !== word.k))
+    .filter(w => (seen.has(w.h) || seen.has(w.id) ? false : (seen.add(w.h), seen.add(w.id), true)))
+    .slice(0, 3);
   return { q: { word, opts: shuffle([word, ...others]) }, queue: remaining };
 }
 
