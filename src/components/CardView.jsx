@@ -166,7 +166,7 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
       if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT") return;
       if (!onScreen(sceneRef.current)) return; // jangan bajak Spasi/panah saat membaca bagian lain
       const h = handlers.current;
-      if (e.code === "Space") { e.preventDefault(); h.flip(); }
+      if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); h.flip(); }
       else if (e.key === "ArrowRight") h.go(1);
       else if (e.key === "ArrowLeft") h.go(-1);
       else if (e.key === "1") h.mark("u");
@@ -253,7 +253,7 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
               <button className="btn" onClick={() => go(1)}>{t.next}</button>
             </div>
             <div className="keys">
-              <kbd>{t.space}</kbd> {t.keys[0]} · <kbd>←</kbd> <kbd>→</kbd> {t.keys[1]} · <kbd>1</kbd> {t.keys[2]} ·{" "}
+              <kbd>↑</kbd> <kbd>↓</kbd> {t.keys[0]} · <kbd>←</kbd> <kbd>→</kbd> {t.keys[1]} · <kbd>1</kbd> {t.keys[2]} ·{" "}
               <kbd>2</kbd> {t.keys[3]}
               <div className="hint" style={{ marginTop: 6, fontSize: 11 }}>{t.keysNote}</div>
             </div>

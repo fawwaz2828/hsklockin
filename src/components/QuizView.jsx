@@ -3,21 +3,43 @@ import { useLang, meaning } from "../lib/i18n.jsx";
 
 const TYPES = ["hz2id", "id2hz", "py2hz"];
 
-function makeQuestion(words) {
-  if (!words.length) return null;
-  const word = words[Math.floor(Math.random() * words.length)];
-  const others = words.filter(w => w.k !== word.k).sort(() => Math.random() - 0.5).slice(0, 3);
-  return { word, opts: [word, ...others].sort(() => Math.random() - 0.5) };
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Ambil soal berikutnya dari antrean acak: setiap kata keluar sekali per putaran,
+// baru diacak ulang setelah semua kata sudah muncul.
+// Fungsi murni (tidak mengubah argumen) supaya aman dipanggil ulang oleh StrictMode.
+function makeQuestion(words, queue = [], lastKey = null) {
+  if (!words.length) return { q: null, queue: [] };
+  let rest = queue;
+  if (!rest.length) {
+    rest = shuffle(words);
+    // jangan sampai kata terakhir putaran lalu langsung muncul lagi di awal putaran baru
+    if (rest.length > 1 && rest[0].k === lastKey) rest = [...rest.slice(1), rest[0]];
+  }
+  const [word, ...remaining] = rest;
+  const others = shuffle(words.filter(w => w.k !== word.k)).slice(0, 3);
+  return { q: { word, opts: shuffle([word, ...others]) }, queue: remaining };
 }
 
 export default function QuizView({ words, updateProg }) {
   const { t, lang } = useLang();
   const [type, setType] = useState("hz2id");
-  const [q, setQ] = useState(() => makeQuestion(words));
+  const [state, setState] = useState(() => makeQuestion(words));
+  const { q, queue } = state;
   const [picked, setPicked] = useState(null); // key opsi yang dipilih
   const [score, setScore] = useState({ right: 0, total: 0 });
 
-  const next = () => { setQ(makeQuestion(words)); setPicked(null); };
+  const next = () => {
+    setState(s => makeQuestion(words, s.queue, s.q?.word.k));
+    setPicked(null);
+  };
 
   const chooseType = ty => {
     setType(ty);
@@ -49,6 +71,7 @@ export default function QuizView({ words, updateProg }) {
       <div className="quiz">
         <div className="score">
           {t.correct(score.right, score.total)}
+          {` · ${words.length - queue.length} / ${words.length}`}
           {picked && (type !== "hz2id" ? ` · ${w.h} = ${w.p}, ${m(w)}` : ` · ${w.p}`)}
         </div>
         <div className={"q" + (type === "hz2id" ? "" : " small") + (type === "py2hz" ? " pinyin" : "")}>

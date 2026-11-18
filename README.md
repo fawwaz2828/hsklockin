@@ -18,7 +18,7 @@ npm run build    # hasil statis di dist/
 - **ID / EN** — antarmuka, arti, contoh kalimat, dan catatan tersedia dalam dua bahasa.
 - Progres disimpan di `localStorage` browser.
 
-Shortcut di flashcard: `Spasi` balik kartu · `←` `→` pindah · `1` belum hafal · `2` sudah hafal.
+Shortcut di flashcard: `↑` `↓` balik kartu · `←` `→` pindah · `1` belum hafal · `2` sudah hafal.
 
 ## Struktur
 
