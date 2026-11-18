@@ -21,6 +21,7 @@
   --f-serif: "Instrument Serif", "Noto Serif SC", Georgia, serif;
   --f-sans: "Vazirmatn", "Noto Sans SC", system-ui, sans-serif;
   --f-mono: "Fira Code", ui-monospace, monospace;
+  --f-py: "Noto Sans SC", var(--f-sans); /* pinyin: tegak, glyph nada lengkap */
   --f-hz-serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
   /* font hanzi bawaan komputer: Windows, macOS, lalu cadangan */
   --f-hz-system: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
@@ -224,14 +225,14 @@ select.chip { appearance: none; }
 .status.u { border: 1px solid var(--stroke); }
 .face .hz { font-family: var(--f-hz); font-size: clamp(76px, 12vw, 124px); font-weight: 500; line-height: 1.05; }
 .face .hz.small { font-size: 44px; }
-.face .py { font-family: var(--f-serif); font-style: italic; font-size: 32px; margin-top: 8px; }
+.face .py { font-family: var(--f-py); font-size: 30px; margin-top: 8px; }
 .face .id { font-size: clamp(24px, 3vw, 34px); line-height: 1.15; letter-spacing: -0.01em; }
 .face .en { font-size: 15px; color: var(--muted); margin-top: 8px; }
 .note { font-size: 14px; color: var(--muted); margin-top: 16px; max-width: 480px; line-height: 1.5; border-top: 1px dashed var(--line); padding-top: 14px; }
 .ex { margin-top: 16px; max-width: 500px; text-align: left; background: var(--paper); border-left: 2px solid var(--stroke); padding: 10px 16px; font-size: 14px; line-height: 1.5; }
 .back .ex { background: var(--paper); }
 .ex .z { font-family: var(--f-hz); font-size: 18px; }
-.ex .y { font-size: 13px; font-family: var(--f-serif); font-style: italic; font-size: 16px; }
+.ex .y { font-family: var(--f-py); font-size: 15px; }
 .ex .t { color: var(--muted); font-size: 14px; }
 .inner { margin: auto; display: flex; flex-direction: column; align-items: center; width: 100%; padding: 18px 0; }
 .hint { margin-top: 22px; color: var(--muted); font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; }
@@ -261,7 +262,7 @@ kbd { font-family: var(--f-mono); border: 1px solid var(--line); border-bottom-w
 .row:hover { background: var(--paper-2); }
 .row .n { font-family: var(--f-mono); color: var(--muted); font-size: 12px; }
 .row .h { font-family: var(--f-hz); font-size: 26px; }
-.row .p { font-family: var(--f-serif); font-style: italic; font-size: 17px; }
+.row .p { font-family: var(--f-py); font-size: 16px; }
 .row .m { font-size: 15px; }
 .row .m small { display: block; color: var(--muted); font-size: 12px; }
 .row .exl { display: block; margin-top: 4px; font-size: 13px; }
@@ -275,7 +276,7 @@ kbd { font-family: var(--f-mono); border: 1px solid var(--line); border-bottom-w
 .score { font-family: var(--f-mono); font-size: 13px; margin-bottom: 14px; min-height: 1.4em; }
 .q { font-family: var(--f-hz); font-size: clamp(64px, 10vw, 100px); font-weight: 500; line-height: 1.1; }
 .q.small { font-family: var(--f-sans); font-size: clamp(28px, 3.6vw, 40px); letter-spacing: -0.01em; }
-.q.small.pinyin { font-family: var(--f-serif); font-style: italic; font-size: clamp(36px, 4.4vw, 52px); }
+.q.small.pinyin { font-family: var(--f-py); font-size: clamp(36px, 4.4vw, 52px); }
 .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 28px; }
 .opt { border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 16px 12px; font-size: 16px; cursor: pointer; transition: border-color 0.25s, background 0.25s; }
 .opt:hover { border-color: var(--stroke-hover); }
