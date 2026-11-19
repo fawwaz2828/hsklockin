@@ -76,7 +76,6 @@ function Faces({ w, mode, multi, status }) {
       <span className="pos">{w.t}</span>
     </>
   );
-  const say = <SpeakButton text={w.h} label={t.listen} className="corner" />;
   const hz = <div className="hz">{w.h}</div>;
   const py = <div className="py">{w.p}</div>;
   let front, back;
@@ -108,8 +107,8 @@ function Faces({ w, mode, multi, status }) {
   }
   return (
     <>
-      <div className="face front">{top}{front}{mode !== "id" && say}<StatusTag s={status} /></div>
-      <div className="face back">{top}{back}{say}<StatusTag s={status} /></div>
+      <div className="face front">{top}{front}<StatusTag s={status} /></div>
+      <div className="face back">{top}{back}<StatusTag s={status} /></div>
     </>
   );
 }
@@ -267,6 +266,9 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
               <div className={"card" + (flipped ? " flip" : "")}>
                 {w && <Faces w={w} mode={mode} multi={multi} status={prog[w.k]} />}
               </div>
+              {/* satu tombol suara di luar kartu 3D (di HP tombol di sisi belakang kartu bisa ikut tembus terlihat);
+                  disembunyikan di sisi depan kalau depan = arti, supaya tidak membocorkan jawaban */}
+              {w && (mode !== "id" || flipped) && <SpeakButton text={w.h} label={t.listen} className="corner" />}
             </div>
             <div className="controls">
               <button className="btn" onClick={() => go(-1)}>{t.prev}</button>
