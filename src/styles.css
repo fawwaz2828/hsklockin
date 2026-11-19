@@ -311,3 +311,17 @@ kbd { font-family: var(--f-mono); border: 1px solid var(--line); border-bottom-w
 .speak.inline svg { width: 13px; height: 13px; }
 .row .h .speak.inline { vertical-align: 4px; }
 .quiz-say { margin-top: 10px; }
+
+/* contoh kalimat tambahan */
+.more-ex { width: 100%; max-width: 500px; margin-top: 14px; text-align: left; cursor: auto; }
+.more-ex-btn { border: 0; background: none; padding: 4px 0; color: var(--ink); font-family: var(--f-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.02em; cursor: pointer; }
+.more-ex-btn:hover { color: var(--red); }
+.more-ex-note { color: var(--muted); font-size: 13px; padding: 6px 0; }
+.more-ex-list { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 8px; counter-reset: ex; }
+.more-ex-list li { counter-increment: ex; position: relative; background: var(--paper); border-left: 2px solid var(--line); padding: 8px 14px 8px 34px; font-size: 14px; line-height: 1.5; user-select: text; }
+.more-ex-list li::before { content: counter(ex); position: absolute; left: 12px; top: 9px; font-family: var(--f-mono); font-size: 11px; color: var(--muted); }
+.more-ex-list .z { font-family: var(--f-hz); font-size: 17px; }
+.more-ex-list .y { font-family: var(--f-py); font-size: 14px; color: var(--ink); }
+.more-ex-list .t { color: var(--muted); font-size: 13px; }
+.more-ex.compact { margin-top: 6px; }
+.more-ex.compact .more-ex-btn { font-size: 11px; }

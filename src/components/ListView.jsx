@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { useLang, meaning } from "../lib/i18n.jsx";
 import { enLabel } from "../data/en.js";
 import { SpeakButton } from "../lib/speech.jsx";
+import { MoreExamples } from "../lib/examples.jsx";
 
 export default function ListView({ lessons, multi, prog }) {
   const { t, lang } = useLang();
@@ -45,6 +46,7 @@ export default function ListView({ lessons, multi, prog }) {
                             <span style={{ color: "var(--muted)" }}>— {lang === "en" ? w.ex.en || w.ex.id : w.ex.id}</span>
                           </span>
                         )}
+                        <MoreExamples h={w.h} compact />
                       </div>
                     </div>
                   ))}

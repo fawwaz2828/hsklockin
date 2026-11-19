@@ -4,6 +4,7 @@ import { shuffle, getItem, setItem } from "../lib/storage.js";
 import { gsap, prefersReducedMotion } from "../lib/motion.js";
 import { useLang, meaning } from "../lib/i18n.jsx";
 import { speak, stopSpeaking, useHasVoice, SpeakButton } from "../lib/speech.jsx";
+import { MoreExamples } from "../lib/examples.jsx";
 
 // true kalau elemen terlihat di layar (shortcut keyboard hanya aktif saat kartu kelihatan)
 const onScreen = el => {
@@ -62,6 +63,7 @@ function Notes({ w }) {
           <div className="t">{en ? w.ex.en || w.ex.id : w.ex.id}</div>
         </div>
       )}
+      <MoreExamples key={w.h} h={w.h} />
     </>
   );
 }
