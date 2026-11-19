@@ -60,10 +60,12 @@ export default function Home() {
 
       <main className="home-main">
         <div className="home-text">
-          <h2 className="statement">
+          {/* key={lang}: elemen dibuat baru tiap ganti bahasa. SplitText mengganti node teks di dalamnya,
+              jadi tanpa key React akan memperbarui node lama yang sudah dilepas -> teks campur dua bahasa */}
+          <h2 className="statement" key={"st-" + lang}>
             {t.statement[0]} <em>{t.statement[1]}</em>
           </h2>
-          <p className="desc">{t.desc(total)}</p>
+          <p className="desc" key={"desc-" + lang}>{t.desc(total)}</p>
           <div className="home-cta">
             <RollButton onClick={() => (window.location.hash = "/flashcard")}>{t.start}</RollButton>
             <span className="cta-note mono">{t.views.cards} · {t.views.quiz} · {t.views.list}</span>
