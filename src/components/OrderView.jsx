@@ -4,6 +4,8 @@ import { ORDER, ORDER_ITEMS } from "../data/order.js";
 import { useLang } from "../lib/i18n.jsx";
 import { speak, stopSpeaking, SpeakButton } from "../lib/speech.jsx";
 import { getItem, setItem } from "../lib/storage.js";
+import { logActivity } from "../lib/stats.js";
+import { SYNC_EVENT } from "../lib/cloud.js";
 import { scramble, shuffled } from "../lib/order.js";
 
 const KEY = "hsk-order"; // { itemId: 1 (benar) | 0 (salah terakhir kali) }
@@ -19,6 +21,8 @@ export default function OrderView() {
   const { t, lang } = useLang();
   const [topic, setTopic] = useState(() => getItem("hsk-order-topic") || "all");
   const [res, setRes] = useState(load);
+  // hasil dari perangkat lain (login) → muat ulang
+  useEffect(() => { const on = () => setRes(load()); window.addEventListener(SYNC_EVENT, on); return () => window.removeEventListener(SYNC_EVENT, on); }, []);
   const [deck, setDeck] = useState(() => makeDeck(topic, res));
   const [pos, setPos] = useState(0);
   const [bank, setBank] = useState([]);
@@ -27,7 +31,11 @@ export default function OrderView() {
   const [hint, setHint] = useState(() => getItem("hsk-order-hint") === "1");
   const [score, setScore] = useState({ ok: 0, n: 0 });
 
-  useEffect(() => { setItem(KEY, JSON.stringify(res)); }, [res]);
+  useEffect(() => {
+    const s = JSON.stringify(res);
+    if (s !== (getItem(KEY) || "{}")) logActivity(); // jawaban baru → aktivitas hari ini
+    setItem(KEY, s);
+  }, [res]);
   useEffect(() => { setItem("hsk-order-topic", topic); }, [topic]);
   useEffect(() => { setItem("hsk-order-hint", hint ? "1" : "0"); }, [hint]);
   useEffect(() => stopSpeaking, []);
@@ -75,6 +83,8 @@ export default function OrderView() {
   useEffect(() => {
     const onKey = e => {
       if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT") return;
+      // Enter/Spasi pada tombol yang sedang fokus sudah memicu klik tombol itu sendiri — jangan ikut cek/lanjut
+      if (e.target.tagName === "BUTTON" && (e.key === "Enter" || e.key === " ")) return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       const h = handlers.current;
       if (/^[1-9]$/.test(e.key) && h.state === "play") { const p = h.left[+e.key - 1]; if (p) h.pick(p); }
@@ -115,7 +125,8 @@ export default function OrderView() {
             {score.n > 0 && <span className="mono">{t.ord.session(score.ok, score.n)}</span>}
           </div>
           <div className="ord-task">{t.ord.task}</div>
-          {(hint || state !== "play") && (
+          {/* petunjuk arti saat menjawab (setelah dijawab, arti tampil di bagian hasil) */}
+          {hint && state === "play" && (
             <div className="ord-hint">{lang === "en" ? item.enT : item.idT}</div>
           )}
 
@@ -143,6 +154,9 @@ export default function OrderView() {
               <div className="ord-correct">
                 {item.answer} <SpeakButton text={item.answer} rate={0.8} label={t.listenEx} className="inline" />
               </div>
+              {/* arti selalu tampil setelah menjawab: bahasa aktif di atas, bahasa lain kecil di bawah */}
+              <div className="ord-meaning">{lang === "en" ? item.enT : item.idT}</div>
+              <div className="ord-meaning other">{lang === "en" ? item.idT : item.enT}</div>
               {state === "wrong" && (
                 <div className="ord-alt">
                   {t.ord.altNote}{" "}

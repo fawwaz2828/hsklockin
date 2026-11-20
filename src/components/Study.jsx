@@ -11,7 +11,13 @@ import QuizView from "./QuizView.jsx";
 import ListView from "./ListView.jsx";
 import ReviewView from "./ReviewView.jsx";
 import OrderView from "./OrderView.jsx";
+import ListeningView from "./ListeningView.jsx";
 import { loadSrs, saveSrs, today, isDue } from "../lib/srs.js";
+import { logActivity, markLearned } from "../lib/stats.js";
+import { changedKeys, stamp } from "../lib/stamps.js";
+import StatsBar from "./StatsBar.jsx";
+import AccountButton from "./AccountButton.jsx";
+import { SYNC_EVENT } from "../lib/cloud.js";
 
 const lessonsIn = set => LESSONS.filter(L => L.set === set);
 
@@ -38,7 +44,7 @@ function initialSel(set) {
   return picked.length ? picked : [ids.includes(3) ? 3 : ids[0]];
 }
 
-const VIEWS = ["cards", "review", "quiz", "order", "list"];
+const VIEWS = ["cards", "review", "quiz", "listen", "order", "list"];
 
 /** Tab dengan blok merah yang meluncur ke tab aktif. */
 function Tabs({ view, setView, due }) {
@@ -108,6 +114,34 @@ export default function Study({ view, setView }) {
   useEffect(() => { setItem(KEYS.combine, combine ? "1" : "0"); }, [combine]);
   useEffect(() => { saveProgress(prog); }, [prog]);
   useEffect(() => { saveSrs(srs); }, [srs]);
+
+  // Statistik: setiap perubahan progres/SRS = aktivitas hari ini; kata yang baru jadi "hafal" dicatat tanggalnya
+  const prevProg = useRef(prog), prevSrs = useRef(srs);
+  useEffect(() => {
+    const old = prevProg.current;
+    prevProg.current = prog;
+    if (old === prog) return;
+    stamp("p", changedKeys(old, prog));
+    markLearned(Object.keys(prog).filter(k => prog[k] === "k" && old[k] !== "k"));
+    logActivity();
+  }, [prog]);
+  // data dari perangkat lain digabung (login) → muat ulang tanpa dihitung sebagai aktivitas hari ini
+  useEffect(() => {
+    const on = () => {
+      const p = loadProgress(), s = loadSrs();
+      prevProg.current = p; prevSrs.current = s;
+      setProg(p); setSrs(s);
+    };
+    window.addEventListener(SYNC_EVENT, on);
+    return () => window.removeEventListener(SYNC_EVENT, on);
+  }, []);
+  useEffect(() => {
+    const old = prevSrs.current;
+    prevSrs.current = srs;
+    if (old === srs) return;
+    stamp("s", changedKeys(old, srs));
+    logActivity();
+  }, [srs]);
   useEffect(() => { setItem("hsk-hz-font", hzFont); }, [hzFont]);
 
   // fn menerima salinan progres, mengubahnya, lalu mengembalikannya
@@ -157,6 +191,9 @@ export default function Study({ view, setView }) {
     : single ? lessonName(single, t)
     : picked.length <= 4 ? picked.map(short).join(" + ") : t.lessonCount(picked.length);
 
+  // Menyimak & Susun punya pilihan sendiri (level/bagian, pola) dan tidak memakai versi/level/lesson di samping
+  const solo = view === "listen" || view === "order";
+
   return (
     <section className={"study hz-" + hzFont} ref={root}>
       <header className="topbar">
@@ -164,29 +201,41 @@ export default function Study({ view, setView }) {
         <div className="topbar-right">
           <div className="toggles"><LangSwitch /><ThemeSwitch /></div>
           <a href="#/" className="back-link">{t.home}</a>
+          <AccountButton />
         </div>
       </header>
       <div className="container">
         <div className="study-head">
           <div>
-            <h2 className="study-title">
-              HSK {titleLv} <em>{VERS[ver]}</em> · {title}
-            </h2>
-            <div className="study-sub">
-              {single ? t.wordsSub(words.length, label(single.sub)) : t.wordsAll(words.length, picked.length)}
-            </div>
+            {solo ? (
+              <>
+                <h2 className="study-title">{t.soloTitle[view]}</h2>
+                <div className="study-sub">{t.soloSub[view]}</div>
+              </>
+            ) : (
+              <>
+                <h2 className="study-title">
+                  HSK {titleLv} <em>{VERS[ver]}</em> · {title}
+                </h2>
+                <div className="study-sub">
+                  {single ? t.wordsSub(words.length, label(single.sub)) : t.wordsAll(words.length, picked.length)}
+                </div>
+              </>
+            )}
           </div>
           <Tabs view={view} setView={setView} due={due} />
         </div>
 
-        <div className="study-layout">
-          <aside>
+        <StatsBar prog={prog} />
+
+        <div className={"study-layout" + (solo ? " solo" : "")}>
+          {!solo && <aside>
             <LessonBar
               curSet={curSet} lessons={setLessons} sel={sel} all={all} allCur={allCur} combine={combine}
               picked={picked}
               onSet={chooseSet} onLesson={pickLesson} onAll={pickAll} onCombine={toggleCombine}
             />
-          </aside>
+          </aside>}
           <div>
             {view === "cards" && (
               <CardView
@@ -199,6 +248,7 @@ export default function Study({ view, setView }) {
               <ReviewView pool={words} srs={srs} updateSrs={updateSrs} prog={prog} updateProg={updateProg} />
             )}
             {view === "order" && <OrderView />}
+            {view === "listen" && <ListeningView defaultLevel={+lv} />}
             {view === "quiz" && <QuizView key={deckKey} words={words} updateProg={updateProg} />}
             {view === "list" && <ListView lessons={picked} pool={verLessons} ver={VERS[ver]} multi={multi} prog={prog} />}
           </div>

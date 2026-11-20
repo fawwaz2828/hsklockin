@@ -10,8 +10,13 @@ export function getItem(key) {
   try { return localStorage.getItem(key); } catch { return null; }
 }
 
+// dipasang oleh cloud.js: dipanggil setiap ada tulisan, untuk sinkron otomatis
+let writeHook = null;
+export const setWriteHook = fn => { writeHook = fn; };
+
 export function setItem(key, value) {
   try { localStorage.setItem(key, value); } catch { /* abaikan */ }
+  writeHook?.(key);
 }
 
 /** Muat progres ("lessonId-n" -> "k" | "u") + migrasi dari versi lama. */

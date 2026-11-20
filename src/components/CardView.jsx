@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import StrokeOrder from "./StrokeOrder.jsx";
 import { lnum, llevel } from "../data/lessons.js";
 import { shuffle, getItem, setItem } from "../lib/storage.js";
 import { gsap, prefersReducedMotion } from "../lib/motion.js";
@@ -126,6 +127,9 @@ export default function CardView({ words, multi, prog, updateProg, srs, updateSr
   const [confirmReset, setConfirmReset] = useState(false);
   const hasVoice = useHasVoice();
   const [autoSay, setAutoSay] = useState(() => getItem("hsk-autosay") === "1");
+  const [showStrokes, setShowStrokes] = useState(() => getItem("hsk-strokes") !== "0");
+  useEffect(() => { setItem("hsk-strokes", showStrokes ? "1" : "0"); }, [showStrokes]);
+  const strokesRef = useRef(null);
   useEffect(() => { setItem("hsk-autosay", autoSay ? "1" : "0"); }, [autoSay]);
 
   const deck = useMemo(() => order.filter(k => !onlyU || prog[k] !== "k"), [order, onlyU, prog]);
@@ -180,7 +184,7 @@ export default function CardView({ words, multi, prog, updateProg, srs, updateSr
 
   // Keyboard: handler selalu memakai state terbaru lewat ref
   const handlers = useRef();
-  handlers.current = { flip: () => setFlipped(f => !f), go, mark, say: () => w && speak(w.h) };
+  handlers.current = { flip: () => setFlipped(f => !f), go, mark, say: () => w && speak(w.h), strokes: () => strokesRef.current?.play() };
   useEffect(() => {
     const onKey = e => {
       if (e.target.tagName === "SELECT" || e.target.tagName === "INPUT") return;
@@ -193,6 +197,7 @@ export default function CardView({ words, multi, prog, updateProg, srs, updateSr
       else if (e.key.toLowerCase() === "n") h.mark("u");
       else if (e.key.toLowerCase() === "m") h.mark("k");
       else if (e.key.toLowerCase() === "l") h.say();
+      else if (e.key.toLowerCase() === "s") h.strokes();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -248,6 +253,9 @@ export default function CardView({ words, multi, prog, updateProg, srs, updateSr
           onClick={() => setAutoSay(v => !v)}>
           {t.autoSay}
         </button>
+        <button className={"chip" + (showStrokes ? " on" : "")} onClick={() => setShowStrokes(v => !v)}>
+          {t.strokes.toggle}
+        </button>
         <button className={"chip" + (confirmReset ? " on" : "")} onClick={onReset}>
           {confirmReset ? (multi ? t.resetAll : t.resetLesson) : t.reset}
         </button>
@@ -283,9 +291,12 @@ export default function CardView({ words, multi, prog, updateProg, srs, updateSr
               <button className="btn ok" onClick={() => mark("k")}>{t.markK}</button>
               <button className="btn" onClick={() => go(1)}>{t.next}</button>
             </div>
+            {showStrokes && w && (
+              <StrokeOrder ref={strokesRef} text={w.h} hidden={mode === "id" && !flipped} />
+            )}
             <div className="keys">
               <kbd>↑</kbd> <kbd>↓</kbd> {t.keys[0]} · <kbd>←</kbd> <kbd>→</kbd> {t.keys[1]} · <kbd>N</kbd> {t.keys[2]} ·{" "}
-              <kbd>M</kbd> {t.keys[3]} · <kbd>L</kbd> {t.keys[4]}
+              <kbd>M</kbd> {t.keys[3]} · <kbd>L</kbd> {t.keys[4]}{showStrokes && <> · <kbd>S</kbd> {t.keys[5]}</>}
               {!hasVoice && <div className="hint" style={{ marginTop: 6, fontSize: 11 }}>{t.noVoice}</div>}
               <div className="hint" style={{ marginTop: 6, fontSize: 11 }}>{t.keysNote}</div>
             </div>

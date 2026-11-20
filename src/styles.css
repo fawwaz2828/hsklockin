@@ -16,6 +16,8 @@
   --ink: #cf1830;                /* warna teks: merah di mode terang */
   --stroke: #cf1830;             /* garis tepi: merah di terang, abu di gelap */
   --stroke-hover: #cf1830;
+  --hz-stroke: #2a1d1f;          /* goresan hanzi (Hanzi Writer): tinta gelap; radikal tetap merah */
+  --hz-outline: #ece4e5;
 
   --f-word: "Anton", "Impact", sans-serif;
   --f-serif: "Instrument Serif", "Noto Serif SC", Georgia, serif;
@@ -40,14 +42,14 @@
   :root:not([data-theme="light"]) {
     --paper: #120b0c; --paper-2: #1c1214; --red: #f2384d; --red-2: #ff5367;
     --red-soft: #351318; --muted: #a8999b; --line: #2f2a2b; --on-red: #ffffff; --ink: #f7f1f1;
-    --stroke: #463d3f; --stroke-hover: #8f8587;
+    --stroke: #463d3f; --stroke-hover: #8f8587; --hz-stroke: #f7f1f1; --hz-outline: #3a3233;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --paper: #120b0c; --paper-2: #1c1214; --red: #f2384d; --red-2: #ff5367;
   --red-soft: #351318; --muted: #a8999b; --line: #2f2a2b; --on-red: #ffffff; --ink: #f7f1f1;
-    --stroke: #463d3f; --stroke-hover: #8f8587;
+    --stroke: #463d3f; --stroke-hover: #8f8587; --hz-stroke: #f7f1f1; --hz-outline: #3a3233;
   color-scheme: dark;
 }
 /* transisi halus saat ganti tema */
@@ -167,6 +169,7 @@ button, select { font: inherit; color: inherit; }
 .study-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 28px; align-items: start; }
 .study-layout > * { min-width: 0; }
 .study-layout > aside { position: sticky; top: 76px; }
+.study-layout.solo { grid-template-columns: minmax(0, 1fr); }  /* Menyimak & Susun: tanpa panel lesson */
 @media (max-width: 920px) {
   .study-layout { grid-template-columns: minmax(0, 1fr); }
   .study-layout > aside { position: static; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
@@ -255,7 +258,113 @@ select.chip { appearance: none; }
 kbd { font-family: var(--f-mono); border: 1px solid var(--line); border-bottom-width: 2px; padding: 0 6px; font-size: 11px; background: var(--paper); color: var(--ink); }
 @media (max-width: 560px) { .card { height: 440px; } .controls { grid-template-columns: 1fr 1fr; } }
 
+/* ---- Reset jadwal Ulang ---- */
+.srs-reset { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 8px; background: var(--red-soft); }
+.srs-reset .mono { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink); }
+.chip.warn { border-color: var(--red); color: var(--red); }
+.chip.warn:hover:not(:disabled) { background: var(--red); color: var(--on-red); }
+
+/* ---- Akun (login Google) ---- */
+.acct { position: relative; display: inline-flex; }
+.acct-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 28px; padding: 0 12px;
+  border: 1px solid var(--stroke); background: transparent; color: var(--ink); font: 500 13px/1 var(--f-sans);
+  cursor: pointer; white-space: nowrap; transition: background .25s, border-color .25s; }
+.acct-btn:hover, .acct-btn.open { background: var(--red-soft); }
+.acct-btn.signin { background: var(--paper); }
+.acct-btn.me { width: 32px; padding: 0; border-radius: 50%; position: relative; }
+.acct-btn.me img, .acct-initial { width: 24px; height: 24px; border-radius: 50%; display: block; object-fit: cover; }
+.acct-initial { background: var(--red); color: var(--on-red); font: 600 12px/24px var(--f-sans); text-align: center; }
+.acct-who img.big, .acct-initial.big { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; }
+.acct-initial.big { font-size: 17px; line-height: 40px; }
+.acct-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; flex: none; }
+.acct-btn .acct-dot { position: absolute; right: -1px; bottom: -1px; box-shadow: 0 0 0 2px var(--paper); }
+.acct-dot.synced { background: #2e9d5b; }
+.acct-dot.syncing { background: #d9a400; }
+.acct-dot.error, .acct-dot.offline { background: var(--red); }
+.acct-menu { position: fixed; z-index: 100; background: var(--paper); border: 1px solid var(--stroke); padding: 14px;
+  display: grid; gap: 12px; box-shadow: 0 12px 32px rgba(0,0,0,.16); animation: acct-in .16s var(--ease-out); }
+@keyframes acct-in { from { opacity: 0; transform: translateY(-4px); } }
+.acct-who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.acct-id { min-width: 0; }
+.acct-name { font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-mail { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acct-status { font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; background: var(--paper-2); }
+.acct-out { border: 1px solid var(--stroke); background: transparent; color: var(--ink); padding: 9px 12px;
+  font: 14px var(--f-sans); cursor: pointer; text-align: center; }
+.acct-out:hover { background: var(--red-soft); }
+
+/* header di HP: hemat tempat supaya logo, bahasa, tema, beranda & akun muat satu baris */
+@media (max-width: 560px) {
+  .topbar { padding-left: 16px; padding-right: 16px; }
+  .topbar .mini-mark { font-size: 22px; }
+  .topbar-right { gap: 10px; }
+  .topbar .toggles { gap: 6px; }
+  .topbar .lang-switch button { padding: 4px 8px; font-size: 12px; }
+  .back-link { font-size: 13px; }
+  .acct-btn.signin { padding: 0 9px; }
+  .topbar .acct-btn.signin .acct-label { display: none; }
+}
+
+/* ---- Statistik ---- */
+.stats-bar { display: flex; flex-wrap: wrap; align-items: stretch; gap: 1px; background: var(--line); border: 1px solid var(--line); margin: 0 0 18px; }
+.stat { background: var(--paper); padding: 10px 16px; display: flex; flex-direction: column; justify-content: center; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.stat-big { font-family: var(--f-word); font-size: 26px; line-height: 1; color: var(--ink); }
+.stat-lbl { font-family: var(--f-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.stat.streak:not(.on) .stat-big { opacity: .55; }
+.week-bars { align-items: center; flex: 0 0 auto; }
+.week-bars .bars { display: flex; align-items: flex-end; gap: 5px; height: 30px; }
+.week-bars .bars i { width: 12px; background: var(--line); display: block; }
+.week-bars .bars i.has { background: var(--muted); }
+.week-bars .bars i.today { outline: 1px solid var(--ink); outline-offset: 1px; }
+.week-bars .bars i.today.has { background: var(--ink); }
+.bar-days { display: flex; gap: 5px; font-family: var(--f-mono); font-size: 9.5px; color: var(--muted); }
+.bar-days span { width: 12px; text-align: center; }
+.stat-note { flex: 1 1 100%; background: var(--red-soft); color: var(--ink); font-size: 12.5px; padding: 6px 16px; }
+@media (max-width: 560px) { .stat { padding: 8px 12px; flex-basis: 30%; } .week-bars { flex-basis: 100%; } }
+
+/* ---- Urutan goresan (Hanzi Writer) ---- */
+.strokes { margin-top: 14px; border: 1px solid var(--line); background: var(--paper); padding: 12px 14px 10px; }
+.strokes-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.strokes-head .mono { font-family: var(--f-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.strokes-btns { display: flex; gap: 6px; }
+.strokes-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.strokes-meta { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 4px;
+  font-family: var(--f-mono); font-size: 11px; color: var(--muted); text-align: center; }
+.stroke-cell { width: 104px; height: 104px; cursor: pointer; border: 1px solid var(--line); background:
+  linear-gradient(var(--line), var(--line)) center / 100% 1px no-repeat,
+  linear-gradient(var(--line), var(--line)) center / 1px 100% no-repeat,
+  linear-gradient(45deg, transparent calc(50% - .5px), var(--paper-2) calc(50% - .5px), var(--paper-2) calc(50% + .5px), transparent calc(50% + .5px)),
+  linear-gradient(-45deg, transparent calc(50% - .5px), var(--paper-2) calc(50% - .5px), var(--paper-2) calc(50% + .5px), transparent calc(50% + .5px)),
+  var(--paper); touch-action: none; }
+.stroke-cell svg { display: block; }
+.strokes .hint { margin-top: 8px; font-size: 12px; text-align: center; }
+
 /* list */
+/* ---- Menyimak ---- */
+.lis-warn { border: 1px dashed var(--red); color: var(--red); padding: 10px 12px; margin-bottom: 12px; font-size: 14px; }
+.lis-player { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 18px 0 6px; }
+.listen-play.on { background: var(--red); color: var(--on-red); }
+.listen-play:disabled { opacity: 0.35; cursor: not-allowed; }
+.lis-q { margin-top: 18px; }
+.lis-stmt { font-family: var(--f-hz); font-size: 24px; text-align: center; }
+.lis-qhead { font-size: 15px; margin-bottom: 8px; }
+.lis-qhead .muted { color: var(--muted); font-size: 13px; }
+.lis-qt { color: var(--muted); font-size: 13px; }
+.lis-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lis-opts.n3 { grid-template-columns: repeat(3, 1fr); }
+.lis-loading { align-self: center; color: var(--muted); font-size: 12px; }
+.lis-opts.judge { max-width: 420px; margin: 12px auto 0; }
+.lis-opt { font-size: 20px; }
+.lis-opts .opt:disabled { cursor: default; }
+.lis-script p { font-family: var(--f-hz); font-size: 19px; margin: 6px 0; line-height: 1.6; }
+.lis-who { color: var(--red); font-weight: 500; }
+.lis-label { font-size: 11px; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.lis-tr { color: var(--muted); font-size: 14px; margin-top: 8px; line-height: 1.5; }
+.controls.lis-controls { grid-template-columns: 1fr 1fr; }
+.controls.lis-controls:has(.solid) { grid-template-columns: 1fr; }
+@media (max-width: 560px) { .lis-opts, .lis-opts.n3 { grid-template-columns: 1fr; } .lis-opts.judge { grid-template-columns: 1fr 1fr; } }
+
 /* ---- Susun kalimat ---- */
 .ord-card { border: 1px solid var(--line); background: var(--paper); padding: 22px 22px 26px; transition: border-color 0.3s; }
 .ord-card.right { border-color: var(--ink); }
@@ -280,6 +389,8 @@ kbd { font-family: var(--f-mono); border: 1px solid var(--line); border-bottom-w
 .ord-verdict { font-family: var(--f-serif); font-style: italic; font-size: 24px; }
 .ord-card.wrong .ord-verdict { color: var(--red); }
 .ord-correct { font-family: var(--f-hz); font-size: 26px; margin-top: 6px; }
+.ord-meaning { font-size: 16px; margin-top: 6px; }
+.ord-meaning.other { font-size: 13px; color: var(--muted); margin-top: 2px; }
 .ord-alt { margin-top: 8px; font-size: 13px; color: var(--muted); }
 .linkish { border: 0; background: none; padding: 0; color: var(--red); text-decoration: underline; cursor: pointer; font: inherit; }
 .controls.ord-controls { grid-template-columns: 1fr 1fr 1.6fr; }
@@ -337,6 +448,20 @@ kbd { font-family: var(--f-mono); border: 1px solid var(--line); border-bottom-w
 .opt { border: 1px solid var(--line); background: var(--paper); color: var(--ink); padding: 16px 12px; font-size: 16px; cursor: pointer; transition: border-color 0.25s, background 0.25s; }
 .opt:hover { border-color: var(--stroke-hover); }
 .opt.hz2 { font-family: var(--f-hz); font-size: 26px; }
+.opt.py2 { font-family: var(--f-py); font-size: 22px; }
+.opt { position: relative; }
+.opt-n { position: absolute; top: 4px; left: 6px; font-family: var(--f-mono); font-size: 10px; opacity: 0.5; }
+.opt-sub { display: block; font-family: var(--f-py); font-size: 13px; opacity: 0.75; margin-top: 2px; }
+.opt.hz2 .opt-sub { font-family: var(--f-py); }
+.opt.py2 .opt-sub { font-family: var(--f-hz); font-size: 15px; }
+/* kuis dengar */
+.listen-q { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.listen-play { width: 96px; height: 96px; border-radius: 50%; border: 2px solid var(--red); background: var(--paper); color: var(--red); display: grid; place-items: center; cursor: pointer; transition: background 0.2s, color 0.2s, transform 0.15s; }
+.listen-play:hover { background: var(--red); color: var(--on-red); }
+.listen-play:active { transform: scale(0.94); }
+.listen-note { color: var(--muted); font-size: 14px; }
+.listen-reveal .hz { font-family: var(--f-hz); font-size: 40px; }
+.listen-reveal .py { font-family: var(--f-py); font-size: 22px; margin-left: 8px; }
 .opt.right { background: var(--red); border-color: var(--red); color: var(--on-red); font-weight: 600; }
 .opt.wrong { border: 1px dashed var(--stroke); text-decoration: line-through; background: var(--red-soft); }
 

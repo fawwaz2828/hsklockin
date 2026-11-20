@@ -70,6 +70,22 @@ export default function ReviewView({ pool, srs, updateSrs, prog, updateProg }) {
     });
   };
 
+  // reset jadwal: kata di lesson yang dipilih, atau semua. Status hafal di Flashcard tidak diubah.
+  const [askReset, setAskReset] = useState(false);
+  useEffect(() => {
+    if (!askReset) return;
+    const tm = setTimeout(() => setAskReset(false), 6000);
+    return () => clearTimeout(tm);
+  }, [askReset]);
+  const poolKeys = useMemo(() => new Set(pool.map(x => x.k)), [pool]);
+  const inPool = cards.filter(([k]) => poolKeys.has(k)).length;
+  const resetSrs = all => {
+    updateSrs(s => { Object.keys(s).forEach(k => { if (all || poolKeys.has(k)) delete s[k]; }); return s; });
+    setQueue(q => (all ? [] : q.filter(k => !poolKeys.has(k))));
+    setDone(0);
+    setAskReset(false);
+  };
+
   const addNew = () => {
     const pick = fresh.slice(0, NEW_BATCH).map(x => x.k);
     if (!pick.length) return;
@@ -113,6 +129,18 @@ export default function ReviewView({ pool, srs, updateSrs, prog, updateProg }) {
         <button className="chip" onClick={addNew} disabled={!fresh.length} title={t.srs.addNewHint}>
           + {t.srs.addNew(Math.min(NEW_BATCH, fresh.length))}
         </button>
+        {!askReset ? (
+          <button className="chip" onClick={() => setAskReset(true)} disabled={!cards.length} title={t.srs.resetHint}>
+            {t.srs.reset}
+          </button>
+        ) : (
+          <span className="srs-reset" role="group" aria-label={t.srs.resetAsk}>
+            <span className="mono">{t.srs.resetAsk}</span>
+            <button className="chip warn" onClick={() => resetSrs(false)} disabled={!inPool}>{t.srs.resetSel(inPool)}</button>
+            <button className="chip warn" onClick={() => resetSrs(true)}>{t.srs.resetAll(cards.length)}</button>
+            <button className="chip" onClick={() => setAskReset(false)}>{t.srs.cancel}</button>
+          </span>
+        )}
       </div>
 
       <section>
