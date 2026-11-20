@@ -1,8 +1,12 @@
-// Audio pengucapan lewat Web Speech API (text-to-speech bawaan browser), suara Mandarin zh-CN.
+// Audio pengucapan.
+// 1. Rekaman penutur asli (public/audio, dari hugolpz/audio-cmn, CC BY-SA 3.0) kalau kata itu ada rekamannya.
+// 2. Selain itu (kalimat contoh, kata tanpa rekaman): Web Speech API, suara Mandarin zh-CN.
 import { useEffect, useState } from "react";
+import { AUDIO } from "../data/audio.js";
 
 const synth = typeof window !== "undefined" ? window.speechSynthesis : null;
 let voice = null;
+let player = null; // <audio> yang sedang diputar
 
 const isZh = v => /^zh[-_](CN|Hans)/i.test(v.lang) || /^cmn/i.test(v.lang);
 
@@ -28,11 +32,12 @@ export function useHasVoice() {
   return ok;
 }
 
-/** Ucapkan teks Mandarin. rate < 1 = lebih pelan. */
-export function speak(text, rate = 0.85) {
-  if (!synth || !text) return;
+/** true kalau teks ini punya rekaman asli. */
+export const hasRecording = text => !!AUDIO[text];
+
+function tts(text, rate) {
+  if (!synth) return;
   if (!voice) pickVoice();
-  synth.cancel(); // hentikan suara sebelumnya supaya tidak menumpuk
   const u = new SpeechSynthesisUtterance(text);
   u.lang = "zh-CN";
   if (voice) u.voice = voice;
@@ -40,11 +45,28 @@ export function speak(text, rate = 0.85) {
   synth.speak(u);
 }
 
-export const stopSpeaking = () => synth?.cancel();
+export function stopSpeaking() {
+  synth?.cancel();
+  if (player) { player.pause(); player = null; }
+}
+
+/** Ucapkan teks Mandarin. rate < 1 = lebih pelan (hanya untuk TTS). */
+export function speak(text, rate = 0.85) {
+  if (!text) return;
+  stopSpeaking(); // hentikan suara sebelumnya supaya tidak menumpuk
+  const file = AUDIO[text];
+  if (!file) return tts(text, rate);
+  const a = new Audio(import.meta.env.BASE_URL + "audio/" + encodeURIComponent(file));
+  player = a;
+  // file gagal dimuat/diputar → jatuh ke TTS
+  const fallback = () => { if (player === a) { player = null; tts(text, rate); } };
+  a.addEventListener("error", fallback, { once: true });
+  a.play().catch(err => { if (err?.name !== "AbortError") fallback(); });
+}
 
 /** Tombol speaker kecil. stopPropagation supaya klik tidak ikut membalik kartu. */
 export function SpeakButton({ text, rate, label, className = "" }) {
-  const ok = useHasVoice();
+  const ok = useHasVoice() || hasRecording(text);
   return (
     <button
       type="button"

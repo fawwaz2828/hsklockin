@@ -5,6 +5,7 @@ import { gsap, prefersReducedMotion } from "../lib/motion.js";
 import { useLang, meaning } from "../lib/i18n.jsx";
 import { speak, stopSpeaking, useHasVoice, SpeakButton } from "../lib/speech.jsx";
 import { MoreExamples } from "../lib/examples.jsx";
+import { AGAIN, GOOD, review, isDue } from "../lib/srs.js";
 
 // true kalau elemen terlihat di layar (shortcut keyboard hanya aktif saat kartu kelihatan)
 const onScreen = el => {
@@ -68,7 +69,7 @@ function Notes({ w }) {
   );
 }
 
-function Faces({ w, mode, multi, status }) {
+export function Faces({ w, mode, multi, status }) {
   const { t } = useLang();
   const top = (
     <>
@@ -113,7 +114,7 @@ function Faces({ w, mode, multi, status }) {
   );
 }
 
-export default function CardView({ words, multi, prog, updateProg, hzFont, setHzFont }) {
+export default function CardView({ words, multi, prog, updateProg, srs, updateSrs, hzFont, setHzFont }) {
   const { t } = useLang();
   const byK = useMemo(() => new Map(words.map(w => [w.k, w])), [words]);
   const [order, setOrder] = useState(() => words.map(w => w.k));
@@ -167,6 +168,10 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
   const mark = s => {
     if (!deck.length) return;
     updateProg(p => { p[curKey] = s; return p; });
+    // ikut jadwalkan di tab Ulang — hanya kata baru / yang jatuh tempo, supaya interval tidak melonjak
+    // kalau kartu yang sama ditandai berkali-kali
+    if (updateSrs && (!srs?.[curKey] || isDue(srs[curKey])))
+      updateSrs(x => { x[curKey] = review(x[curKey], s === "k" ? GOOD : AGAIN); return x; });
     if (onlyU && s === "k") {
       // kartu hilang dari deck; indeks yang sama sekarang menunjuk kartu berikutnya
       if (i >= deck.length - 1) setIdx(0);
@@ -202,6 +207,7 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
   const onReset = () => {
     if (!confirmReset) return setConfirmReset(true);
     updateProg(p => { words.forEach(x => delete p[x.k]); return p; });
+    updateSrs?.(x => { words.forEach(w => delete x[w.k]); return x; });
     setConfirmReset(false);
     setOrder(words.map(x => x.k));
     setShuffled(false);
@@ -237,7 +243,8 @@ export default function CardView({ words, multi, prog, updateProg, hzFont, setHz
         <button className={"chip" + (onlyU ? " on" : "")} onClick={() => { setOnlyU(v => !v); setIdx(0); }}>
           {t.onlyU}
         </button>
-        <button className={"chip" + (autoSay ? " on" : "")} disabled={!hasVoice} title={hasVoice ? "" : t.noVoice}
+        {/* tetap aktif tanpa suara zh-CN: sebagian besar kata punya rekaman asli */}
+        <button className={"chip" + (autoSay ? " on" : "")} title={hasVoice ? "" : t.noVoice}
           onClick={() => setAutoSay(v => !v)}>
           {t.autoSay}
         </button>

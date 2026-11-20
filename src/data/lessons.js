@@ -1,5 +1,6 @@
 // Data kosakata HSK 1–4 (diekstrak dari flashcard-hsk-1-4.html)
 import { EN_EX, EN_MEAN, EN_NOTE } from "./en.js";
+import { TITLES } from "./titles.js";
 const L1 = [
   // g: group index
   {n:1,h:"签证",p:"qiānzhèng",t:"n.",id:"visa",en:"visa",g:0,note:"办签证 = mengurus visa",ex:{"zh": "办签证需要多长时间？", "py": "Bàn qiānzhèng xūyào duō cháng shíjiān?", "id": "Berapa lama mengurus visa?"}},
@@ -203,8 +204,10 @@ Object.keys(LV).forEach(s => {
     const ws = arr.filter(x => x[1] === ln).map((x,j) => { const d = DICT[x[0]];
       return {n:j+1, h:x[0], p:d[0], t:d[1], id:d[2], en:"", g:0, ex:{zh:d[3], py:d[4], id:d[5]}}; });
     const nm = ln === 0 ? "Angka" : "Lesson " + ln;
+    // judul persis dari buku (titles.js): "中文 · English"; lesson tanpa judul tetap "HSK x (versi) · Lesson y"
+    const tt = ln > 0 && TITLES[s]?.[ln - 1];
     LESSONS.push({id: base+ln, set: s, name: nm, short: ln === 0 ? "Angka" : "L"+ln,
-      sub: `HSK ${lv} (${ver}.0) · ${nm}`, words: ws, groups: [`HSK ${lv} ${ver}.0 · ${nm}`]});
+      sub: tt ? `${tt[0]} · ${tt[1]}` : `HSK ${lv} (${ver}.0) · ${nm}`, words: ws, groups: [`HSK ${lv} ${ver}.0 · ${nm}`]});
   });
 });
 

@@ -3,9 +3,9 @@ import { startSmoothScroll, scrollTop } from "./lib/motion.js";
 import Home from "./components/Home.jsx";
 import Study from "./components/Study.jsx";
 
-// Routing sederhana lewat hash: #/  ·  #/flashcard  ·  #/kuis  ·  #/daftar
-const ROUTES = { flashcard: "cards", kuis: "quiz", daftar: "list" };
-const VIEW_TO_ROUTE = { cards: "flashcard", quiz: "kuis", list: "daftar" };
+// Routing sederhana lewat hash: #/  ·  #/flashcard  ·  #/ulang  ·  #/kuis  ·  #/susun  ·  #/daftar
+const ROUTES = { flashcard: "cards", ulang: "review", kuis: "quiz", susun: "order", daftar: "list" };
+const VIEW_TO_ROUTE = { cards: "flashcard", review: "ulang", quiz: "kuis", order: "susun", list: "daftar" };
 
 const readRoute = () => ROUTES[window.location.hash.replace(/^#\/?/, "")] || null;
 
